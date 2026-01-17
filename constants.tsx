@@ -17,6 +17,7 @@ export const TYPE_COLORS: Record<string, string> = {
   dragon: 'bg-indigo-700',
   steel: 'bg-slate-400',
   fairy: 'bg-pink-300',
+  dark: 'bg-zinc-800',
 };
 
 export const TYPE_GRADIENTS: Record<string, string> = {
@@ -37,9 +38,9 @@ export const TYPE_GRADIENTS: Record<string, string> = {
   dragon: 'from-indigo-700 to-purple-800',
   steel: 'from-slate-400 to-gray-500',
   fairy: 'from-pink-300 to-fuchsia-400',
+  dark: 'from-zinc-800 to-black',
 };
 
-// Matriz de eficacia: [Atacante]: { [Defensor]: multiplicador }
 export const TYPE_CHART: Record<string, Record<string, number>> = {
   normal: { rock: 0.5, ghost: 0, steel: 0.5 },
   fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
@@ -59,4 +60,15 @@ export const TYPE_CHART: Record<string, Record<string, number>> = {
   steel: { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
   fairy: { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 },
   dark: { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 }
+};
+
+/**
+ * Calcula un stat individual basándose en la fórmula oficial de los juegos.
+ */
+export const calculateStat = (base: number, iv: number, ev: number, level: number, nature: number = 1, isHP: boolean = false) => {
+  if (isHP) {
+    if (base === 1) return 1; // Shedinja case
+    return Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + level + 10;
+  }
+  return Math.floor((Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + 5) * nature);
 };
