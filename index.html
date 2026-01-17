@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokéVision Pro | Elite Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-glow: rgba(59, 130, 246, 0.5);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, #0f172a 0%, transparent 50%);
+        }
+        .font-pokedex { font-family: 'Orbitron', sans-serif; }
+        
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+        
+        .pokemon-card {
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+        }
+        
+        .pokemon-card:hover {
+            transform: translateY(-12px) rotateX(4deg) rotateY(4deg);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
+        }
+
+        .pokemon-card img {
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .pokemon-card:hover img {
+            transform: translateZ(50px) scale(1.1);
+        }
+
+        /* Particles & Elemental Vfx */
+        @keyframes float-particle {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: float-particle var(--duration) infinite linear;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        
+        /* Shimmer effect for shiny toggle */
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>

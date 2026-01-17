@@ -1,0 +1,5 @@
+{
+  "name": "PokéVision Pro",
+  "description": "A high-performance, visually stunning Pokémon explorer powered by the PokéAPI and Gemini for advanced insights.",
+  "requestFramePermissions": []
+}
