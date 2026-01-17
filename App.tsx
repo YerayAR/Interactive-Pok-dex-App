@@ -15,10 +15,42 @@ const App: React.FC = () => {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [favorites, setFavorites] = useState<PokemonDetails[]>([]);
+  const [showFavPanel, setShowFavPanel] = useState(false);
   
   const observerTarget = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const limit = 24;
+
+  // Cargar favoritos del localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('pokevision_favorites');
+    if (saved) {
+      try {
+        setFavorites(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse favorites", e);
+      }
+    }
+  }, []);
+
+  // Guardar favoritos
+  useEffect(() => {
+    localStorage.setItem('pokevision_favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (pokemon: PokemonDetails) => {
+    const isFav = favorites.some(f => f.id === pokemon.id);
+    if (isFav) {
+      setFavorites(prev => prev.filter(f => f.id !== pokemon.id));
+    } else {
+      if (favorites.length >= 6) {
+        alert("SQUAD FULL: Maximum 6 specimens allowed in elite priority.");
+        return;
+      }
+      setFavorites(prev => [...prev, pokemon]);
+    }
+  };
 
   const loadInitial = useCallback(async () => {
     setLoading(true);
@@ -38,7 +70,6 @@ const App: React.FC = () => {
     loadInitial();
   }, [loadInitial]);
 
-  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -135,27 +166,81 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="w-full lg:max-w-xl relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
-            <input 
-              type="text"
-              placeholder="Search database by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="relative w-full bg-slate-900 border border-white/10 rounded-2xl py-4 px-6 pl-14 focus:outline-none focus:border-blue-500/50 transition-all text-sm font-bold text-white placeholder:text-slate-600"
-            />
-            <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <div className="flex-1 w-full lg:max-w-xl flex items-center gap-4">
+            <div className="relative group flex-1">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <input 
+                type="text"
+                placeholder="Search database..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="relative w-full bg-slate-900 border border-white/10 rounded-2xl py-4 px-6 pl-14 focus:outline-none focus:border-blue-500/50 transition-all text-sm font-bold text-white placeholder:text-slate-600"
+              />
+              <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            {/* Squad Toggle Icon */}
+            <button 
+              onClick={() => setShowFavPanel(!showFavPanel)}
+              className={`relative p-4 rounded-2xl border transition-all ${favorites.length > 0 ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'}`}
+            >
+              <svg className="w-6 h-6" fill={favorites.length > 0 ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              {favorites.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[#020617]">
+                  {favorites.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Squad Panel (Horizontal Dropdown) */}
+        {showFavPanel && (
+          <div className="max-w-7xl mx-auto mt-6 p-4 glass rounded-[2rem] border-blue-500/20 animate-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">Elite Squad Priority List</h3>
+              <span className="text-[9px] text-slate-500 font-bold uppercase">{favorites.length} / 6 Slots Occupied</span>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {favorites.length === 0 && (
+                <div className="w-full py-8 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-2xl">
+                  <p className="text-[10px] text-slate-600 font-bold uppercase italic">Squad empty. Designate priority specimens from archive.</p>
+                </div>
+              )}
+              {favorites.map(fav => (
+                <div key={fav.id} className="group relative flex-shrink-0">
+                  <button 
+                    onClick={() => setSelectedPokemon(fav)}
+                    className="w-20 h-20 bg-white/5 rounded-2xl border border-white/10 p-2 hover:bg-white/10 hover:border-blue-500/30 transition-all flex items-center justify-center"
+                  >
+                    <img src={fav.sprites.other['official-artwork'].front_default} alt={fav.name} className="w-14 h-14 object-contain" />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-md"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+              {Array.from({ length: Math.max(0, 6 - favorites.length) }).map((_, i) => (
+                <div key={`empty-${i}`} className="w-20 h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center text-slate-800 text-xl font-black">
+                  +
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 pt-12">
-        {/* Desplegable de Filtros */}
+        {/* Filters and List code continues similarly... */}
         <div className="mb-12 flex flex-col items-start gap-4">
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] ml-2">Archive Filters</p>
-          
           <div className="relative" ref={dropdownRef}>
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -166,33 +251,22 @@ const App: React.FC = () => {
               </svg>
               {selectedType === 'all' ? 'Filter by Elemental Type' : `${selectedType} module`}
             </button>
-
             {isFilterOpen && (
               <div className="absolute top-full left-0 mt-2 w-72 max-h-[60vh] overflow-y-auto glass rounded-2xl border border-white/10 z-50 p-2 shadow-2xl animate-in slide-in-from-top-2 duration-200">
-                <button 
-                  onClick={() => handleTypeChange('all')}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase transition-all mb-1 ${selectedType === 'all' ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-400'}`}
-                >
-                  Clear All Filters (All Entries)
+                <button onClick={() => handleTypeChange('all')} className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase transition-all mb-1 ${selectedType === 'all' ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-400'}`}>
+                  Clear All Filters
                 </button>
-                <div className="grid grid-cols-1 gap-1">
-                  {pokemonTypes.map(type => (
-                    <button 
-                      key={type}
-                      onClick={() => handleTypeChange(type)}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-between ${selectedType === type ? `${TYPE_COLORS[type]} text-white` : 'hover:bg-white/5 text-slate-400'}`}
-                    >
-                      <span>{type} Signature</span>
-                      <div className={`w-2 h-2 rounded-full ${TYPE_COLORS[type]}`}></div>
-                    </button>
-                  ))}
-                </div>
+                {pokemonTypes.map(type => (
+                  <button key={type} onClick={() => handleTypeChange(type)} className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-between ${selectedType === type ? `${TYPE_COLORS[type]} text-white` : 'hover:bg-white/5 text-slate-400'}`}>
+                    <span>{type}</span>
+                    <div className={`w-2 h-2 rounded-full ${TYPE_COLORS[type]}`}></div>
+                  </button>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Results Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
           {displayList.map((p) => (
             <PokemonCard 
@@ -203,55 +277,33 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Empty Archive State */}
-        {displayList.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-32 text-center glass rounded-[3rem] border-dashed border-2 border-white/5">
-            <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center mb-6 text-4xl">⚠️</div>
-            <h3 className="text-2xl font-black text-slate-300 font-pokedex uppercase tracking-tight">Access Denied</h3>
-            <p className="text-slate-600 mt-2 font-medium">No records found for decryption query "{search}"</p>
-            <button onClick={() => {setSearch(''); handleTypeChange('all')}} className="mt-8 text-blue-500 font-black text-xs uppercase tracking-widest hover:underline underline-offset-8">Reset Archive Modules</button>
-          </div>
-        )}
-
-        {/* Sync Point / Observer */}
         <div ref={observerTarget} className="w-full h-40 flex flex-col items-center justify-center mt-12">
           {loading ? (
             <div className="flex flex-col items-center gap-4">
-              <div className="flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}></div>
-                ))}
+              <div className="flex gap-1 animate-bounce">
+                {[...Array(3)].map((_, i) => <div key={i} className="w-2 h-2 bg-blue-500 rounded-full"></div>)}
               </div>
-              <p className="text-[10px] font-black text-blue-500/50 tracking-[0.4em] uppercase">Accessing Database...</p>
             </div>
-          ) : (
-            !hasMore && displayList.length > 0 && (
-              <div className="flex items-center gap-4 text-slate-700">
-                <div className="h-px w-20 bg-slate-800"></div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em]">End of Files</p>
-                <div className="h-px w-20 bg-slate-800"></div>
-              </div>
-            )
-          )}
+          ) : !hasMore && <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">Database End</p>}
         </div>
       </main>
 
-      {/* Detail Overlay */}
       <PokemonModal 
         pokemon={selectedPokemon} 
-        onClose={() => setSelectedPokemon(null)} 
+        onClose={() => setSelectedPokemon(null)}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
 
-      {/* HUD Info Footer */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
         <div className="glass px-8 py-3 rounded-full flex items-center gap-6 border-white/10 shadow-2xl">
            <div className="flex items-center gap-2">
              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div>
-             <span className="text-[10px] font-black text-white uppercase tracking-widest">{pokemonList.length} LOGS ACTIVE</span>
+             <span className="text-[10px] font-black text-white uppercase tracking-widest">{pokemonList.length} LOGS</span>
            </div>
            <div className="h-4 w-px bg-white/10"></div>
            <div className="flex items-center gap-2">
-             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{selectedType === 'all' ? 'STANDBY' : `MODULE: ${selectedType}`}</span>
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SQUAD: {favorites.length}/6</span>
            </div>
         </div>
       </div>
