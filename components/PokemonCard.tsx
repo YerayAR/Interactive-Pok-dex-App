@@ -7,10 +7,9 @@ import { TYPE_COLORS } from '../constants';
 interface PokemonCardProps {
   name: string;
   onClick: (pokemon: PokemonDetails) => void;
-  onLoadDetails?: (details: PokemonDetails) => void;
 }
 
-const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails }) => {
+const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick }) => {
   const [details, setDetails] = useState<PokemonDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +18,6 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails 
       try {
         const data = await fetchPokemonDetails(name);
         setDetails(data);
-        if (onLoadDetails) onLoadDetails(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -56,8 +54,9 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails 
   return (
     <div 
       onClick={() => onClick(details)}
-      className="pokemon-card cursor-pointer glass rounded-[2rem] p-6 flex flex-col items-center group relative overflow-visible border border-white/5"
+      className="pokemon-card cursor-pointer glass rounded-[2rem] p-6 flex flex-col items-center group relative overflow-visible"
     >
+      {/* Background Particles based on type */}
       <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none opacity-40">
         {particles.map(p => (
           <div 
@@ -76,8 +75,8 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails 
       </div>
 
       <div className="absolute top-4 left-6 flex flex-col items-start z-10">
-        <span className="text-[8px] font-black text-slate-500 tracking-tighter uppercase font-pokedex opacity-50">Unit-ID</span>
-        <span className="text-xs font-black text-slate-300 font-pokedex">#{details.id.toString().padStart(3, '0')}</span>
+        <span className="text-[10px] font-black text-slate-500 tracking-tighter uppercase font-pokedex opacity-50">Archive</span>
+        <span className="text-sm font-black text-slate-300 font-pokedex">#{details.id.toString().padStart(3, '0')}</span>
       </div>
 
       <div className="relative w-full h-40 flex items-center justify-center mb-4">
@@ -91,7 +90,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails 
       </div>
 
       <div className="text-center z-10">
-        <h3 className="text-xl font-black capitalize text-white font-pokedex tracking-tight mb-2 group-hover:text-blue-400 transition-colors">
+        <h3 className="text-2xl font-black capitalize text-white font-pokedex tracking-tight mb-2 group-hover:text-blue-400 transition-colors">
           {details.name}
         </h3>
         
@@ -99,7 +98,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ name, onClick, onLoadDetails 
           {details.types.map(t => (
             <span 
               key={t.type.name}
-              className={`${TYPE_COLORS[t.type.name]} text-[8px] font-black uppercase px-2 py-1 rounded-lg text-white shadow-xl border border-white/10`}
+              className={`${TYPE_COLORS[t.type.name]} text-[9px] font-black uppercase px-3 py-1 rounded-lg text-white shadow-xl border border-white/10`}
             >
               {t.type.name}
             </span>
